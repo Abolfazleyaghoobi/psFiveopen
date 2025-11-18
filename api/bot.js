@@ -1,8 +1,10 @@
+// فایل: /api/bot.js
 import { Telegraf } from "telegraf";
 import start from "../commond/start.js";
 import text from "../eventHandler/chat.js";
 import callback from "../eventHandler/callback.js";
 
+// توکن ربات از محیط Vercel گرفته میشه
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
 // ثبت هندلرها
@@ -10,22 +12,20 @@ bot.start(start);
 bot.on("message", text);
 bot.on("callback_query", callback);
 
-// حالت وبهوک – بدون launch
+// فقط یکبار ساخت handler برای Vercel
 export default async function handler(req, res) {
   if (req.method === "POST") {
     try {
-      // خیلی خیلی مهم 🚨
-      await bot.init();
-
-      // دریافت آپدیت
+      // دریافت آپدیت و پردازشش
       await bot.handleUpdate(req.body);
 
-      res.status(200).send("ok");
+      return res.status(200).send("ok");
     } catch (error) {
       console.error("Error handling update", error);
-      res.status(500).send("error");
+      return res.status(500).send("error");
     }
-  } else {
-    res.status(405).send("Method Not Allowed");
   }
+
+  // اگر متد غیر از POST بود
+  res.status(405).send("Method Not Allowed");
 }
